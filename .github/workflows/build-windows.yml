@@ -1,0 +1,31 @@
+name: Build Windows bundle
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Flet
+        run: pip install flet
+
+      - name: Build
+        run: flet build windows --yes --no-rich-output
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kinoprokatchik-windows
+          path: build/windows
+          if-no-files-found: error
+          retention-days: 30

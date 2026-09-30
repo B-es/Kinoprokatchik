@@ -1,0 +1,40 @@
+# === Секреты: НИКОГДА не коммитить ===
+# Google OAuth: скачанные из Cloud Console файлы клиента
+# (шаблоны *.example.json под эти правила не попадают)
+client_secrets.json
+*.client_secrets.json
+
+# Кэш OAuth-токенов, который PyDrive создаёт после первого входа
+credentials.json
+*.credentials.json
+data/drive/credentials*.json
+**/token*.json
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.python-version
+
+# === Сборка ===
+build/
+dist/
+*.spec
+generated*
+# Локальный рабочий каталог flet (кэш, настройки запуска)
+.flet/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# === Локальная песочница/проверки ===
+.scratch_check/
+
+# === IDE / ОС ===
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

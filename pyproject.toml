@@ -1,0 +1,57 @@
+[project]
+name = "kinoprokatchik"
+version = "0.2.0"
+description = "Учёт фильмов и сериалов с синхронизацией базы в Google Drive"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "flet==1.0.3",
+    "PyDrive2==1.19.0",
+    "PyYAML>=6.0",
+    "dataclasses-json>=0.6.4",
+]
+
+[tool.flet]
+# Отображаемое имя (заголовок окна, ярлык, about-диалог)
+product = "Кинопрокатчик"
+company = "B-es"
+
+[tool.flet.app]
+# Корень Python-приложения (здесь же лежат assets/ и data/)
+path = "."
+module = "main"
+
+[tool.flet.windows]
+# Имя .exe на диске
+artifact = "Кинопрокатчик"
+
+[tool.flet.app.exclude]
+# Что НЕ попадает в собранное приложение.
+# Пути считаются от [tool.flet.app].path.
+exclude = [
+    # Секреты и пользовательские токены
+    "data/drive/client_secrets.json",
+    "data/drive/credentials.json",
+    "data/drive/credentials*.json",
+    "**/client_secrets.json",
+    "*.credentials.json",
+    # Локальное окружение и мусор сборки
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "build",
+    "dist",
+    ".scratch_check",
+    ".vscode",
+    ".idea",
+    "__pycache__",
+    "*/__pycache__",
+    "*/*/__pycache__",
+    "*.pyc",
+    "*.spec",
+]
+include = [
+    # Эти файлы конфигурации в сборке нужны
+    "data/drive/settings.yaml",
+]

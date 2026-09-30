@@ -1,0 +1,12 @@
+# Шаблон настроек PyDrive2. Приложение само создаёт settings.yaml при первом запуске.
+# Пути указывать не обязательно: если ключ отсутствует или относительный, он считается
+# относительным к папке data/drive/.
+save_credentials: True
+oauth_scope: ['https://www.googleapis.com/auth/drive']
+save_credentials_backend: file
+
+# ID файла в Google Drive, который используется как база данных.
+# Переопределяется переменной окружения KINOPROKATCHIK_DRIVE_FILE_ID.
+# Создайте свой файл на диске и вставьте сюда его ID из ссылки вида
+# https://drive.google.com/file/d/<ЭТОТ_ID>/view
+drive_file_id: <ID_ФАЙЛА_БАЗЫ>

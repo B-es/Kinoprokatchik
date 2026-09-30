@@ -1,0 +1,10 @@
+# Настройки PyDrive2. Секретов здесь нет и быть не должно.
+save_credentials: True
+oauth_scope: ['https://www.googleapis.com/auth/drive']
+save_credentials_backend: file
+
+# ID файла в Google Drive, который используется как база данных.
+# Создайте свой файл на диске и вставьте сюда его ID из ссылки вида
+# https://drive.google.com/file/d/<ID>/view
+# Либо задайте переменную окружения KINOPROKATCHIK_DRIVE_FILE_ID.
+drive_file_id: ''
