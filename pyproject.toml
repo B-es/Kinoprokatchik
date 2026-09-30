@@ -1,7 +1,7 @@
 [project]
 name = "kinoprokatchik"
 version = "0.2.0"
-description = "Учёт фильмов и сериалов с синхронизацией базы в Google Drive"
+description = "Учёт фильмов и сериалов: база локально или в Google Drive"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
 dependencies = [

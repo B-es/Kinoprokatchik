@@ -1,13 +1,14 @@
-"""Связка данных и базы на Google Drive.
+"""Связка данных и базы: локальный файл или Google Drive.
 
-Асинхронные методы уводят синхронный PyDrive2 в отдельный поток
-(``asyncio.to_thread``), чтобы сеть не морозила интерфейс Flet.
+Асинхронные методы уводят синхронное хранилище (файл или PyDrive2) в
+отдельный поток (``asyncio.to_thread``), чтобы ввод-вывод не морозил
+интерфейс Flet 1.x.
 """
 
 import asyncio
 
 from data.Kino import Kino, KinosHandler
-from data.drive.drive import Database
+from data.storage import Storage, open_database
 
 __all__ = ['DataController', 'Kino', 'KinosHandler']
 
@@ -15,19 +16,19 @@ _KinoDict = dict
 
 
 class DataController:
-    """Держит ``KinosHandler`` и синхронизирует его с базой на Drive."""
+    """Держит ``KinosHandler`` и синхронизирует его с выбранным хранилищем."""
 
-    def __init__(self, settings: dict, file_id: str) -> None:
+    def __init__(self, mode: str, settings: dict = None) -> None:
+        self.mode = mode
         self.settings = settings
-        self.file_id = file_id
         self._database = None
         self.kinosHandler = KinosHandler(json='[]')
 
     @property
-    def database(self) -> Database:
-        """Соединение с Drive создаётся лениво, при первом обращении."""
+    def database(self) -> Storage:
+        """Хранилище создаётся лениво, при первом обращении (и может открыть браузер)."""
         if self._database is None:
-            self._database = Database(self.settings, self.file_id)
+            self._database = open_database(self.mode, self.settings)
         return self._database
 
     async def load(self) -> None:
@@ -45,8 +46,16 @@ class DataController:
         self.kinosHandler.clear()
         await asyncio.to_thread(lambda: self.database.clear())
 
+    async def migrate(self, to: str) -> None:
+        """Перенести текущие данные в другое хранилище и переключиться на него."""
+        json = self.kinosHandler.toJson()
+        target = open_database(to, self.settings)
+        await asyncio.to_thread(lambda: target.save(json))
+        self.mode = to
+        self._database = target
+
     def clearData(self) -> None:
-        """Локальная очистка без обращения к сети (совместимость со старым кодом)."""
+        """Локальная очистка без обращения к хранилищу (совместимость со старым кодом)."""
         self.kinosHandler.clear()
 
     def append(self, dict: _KinoDict = None, dicts: list = None) -> None:

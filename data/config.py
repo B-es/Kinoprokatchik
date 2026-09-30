@@ -16,6 +16,13 @@ CLIENT_SECRETS_PATH = DRIVE_DIR / 'client_secrets.json'
 
 ENV_FILE_ID = 'KINOPROKATCHIK_DRIVE_FILE_ID'
 ENV_DATA_DIR = 'KINOPROKATCHIK_DATA_DIR'
+ENV_STORAGE = 'KINOPROKATCHIK_STORAGE'
+
+#: Режимы хранения базы.
+STORAGE_AUTO = 'auto'
+STORAGE_LOCAL = 'local'
+STORAGE_DRIVE = 'drive'
+STORAGE_MODES = (STORAGE_AUTO, STORAGE_LOCAL, STORAGE_DRIVE)
 
 _DEFAULT_SETTINGS = (
     'save_credentials: true\n'
@@ -94,21 +101,52 @@ def drive_file_id() -> str:
     return os.environ.get(ENV_FILE_ID) or str(load_settings().get('drive_file_id') or '')
 
 
+def has_client_secrets() -> bool:
+    """Есть ли OAuth-клиент Google (без него Drive недоступен)."""
+    return CLIENT_SECRETS_PATH.exists()
+
+
+def storage_mode() -> str:
+    """Выбранный режим хранилища. Переопределяется переменной окружения."""
+    raw = os.environ.get(ENV_STORAGE) or load_settings().get('storage') or STORAGE_AUTO
+    mode = str(raw).strip().lower()
+    return mode if mode in STORAGE_MODES else STORAGE_AUTO
+
+
 def check_settings() -> str:
     """Возвращает текст ошибки для первого экрана или пустую строку, если всё готово."""
-    if not CLIENT_SECRETS_PATH.exists():
-        return (
-            'Не найден client_secrets.json.\n\n'
-            'Положите файл по пути:\n'
-            f'{CLIENT_SECRETS_PATH}\n\n'
-            'Инструкция — в Readme.md, раздел «Настройка доступа к Google Drive».'
-        )
+    # Импорт здесь, чтобы не было цикла: data/storage.py сам читает config.
+    from data.storage import STORAGE_DRIVE, resolve_mode
 
-    if not drive_file_id():
+    if resolve_mode() == STORAGE_DRIVE:
+        if not CLIENT_SECRETS_PATH.exists():
+            return (
+                'Выбрано хранение в Google Drive, но не найден client_secrets.json.\n\n'
+                'Положите файл по пути:\n'
+                f'{CLIENT_SECRETS_PATH}\n\n'
+                'Инструкция — в README.md, раздел «Настройка доступа к Google Drive».'
+            )
+
+        if not drive_file_id():
+            return (
+                'Не задан ID файла базы данных на Google Drive.\n\n'
+                f'Укажите drive_file_id в {settings_path()}\n'
+                f'или задайте переменную окружения {ENV_FILE_ID}.'
+            )
+
+        return ''
+
+    # Режим local: проверяем, что папку данных вообще можно создать и записать.
+    try:
+        directory = user_data_dir()
+        probe = directory / '.write-check'
+        probe.write_text('', encoding='utf-8')
+        probe.unlink()
+    except OSError as error:
         return (
-            'Не задан ID файла базы данных.\n\n'
-            f'Укажите drive_file_id в {settings_path()}\n'
-            f'или задайте переменную окружения {ENV_FILE_ID}.'
+            'Не удалось получить доступ к папке данных.\n\n'
+            f'{user_data_dir()}\n\n'
+            f'Ошибка: {error}'
         )
 
     return ''
@@ -119,5 +157,6 @@ if __name__ == '__main__':
     print('settings :', settings_path())
     print('secrets  :', CLIENT_SECRETS_PATH)
     print('data dir :', user_data_dir())
+    print('storage  :', storage_mode())
     print('file id  :', drive_file_id() or '(не задан)')
     print('check    :', check_settings() or 'ok')

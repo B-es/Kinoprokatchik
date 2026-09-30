@@ -44,3 +44,8 @@ class ButtonMenu(ft.Container):
                 continue
             button.disabled = not has_current
             button.update()
+
+    def setEnabled(self, enabled: bool) -> None:
+        """Включает или выключает всю панель (пока идёт работа с хранилищем)."""
+        self.disabled = not enabled
+        self.update()

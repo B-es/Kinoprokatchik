@@ -3,7 +3,13 @@ save_credentials: True
 oauth_scope: ['https://www.googleapis.com/auth/drive']
 save_credentials_backend: file
 
+# Где хранить базу: local — файл на диске, drive — Google Drive, auto — решить при запуске
+# (если заполнен drive_file_id и есть client_secrets.json, выбирается Drive, иначе файл).
+# Переопределяется переменной окружения KINOPROKATCHIK_STORAGE.
+storage: local
+
 # ID файла в Google Drive, который используется как база данных.
+# Нужен только для storage: drive (или storage: auto).
 # Создайте свой файл на диске и вставьте сюда его ID из ссылки вида
 # https://drive.google.com/file/d/<ID>/view
 # Либо задайте переменную окружения KINOPROKATCHIK_DRIVE_FILE_ID.

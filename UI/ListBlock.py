@@ -24,7 +24,7 @@ class ListBlock(ft.Row):
             controller=controller,
             isWatching=isWatching,
             owner=self,
-            on_save=self._on_save,
+            on_save=self._changed,
         )
         self.info = InfoPane()
         self.form = None
@@ -41,12 +41,17 @@ class ListBlock(ft.Row):
             expand=True,
         )
 
-    async def _on_save(self) -> None:
+    async def _changed(self) -> None:
         """Сохраняет базу после изменения списка."""
         await self.controller.save()
 
-    async def _notify(self) -> None:
-        """Сообщает окну, что данные изменились."""
+    async def _notify_changed(self) -> None:
+        """Сообщает окну, что данные изменились.
+
+        Имя не ``_notify``: у BaseControl из flet уже есть служебный метод с таким
+        именем, и он вызывается при каждом присваивании свойств — конфликт ломает
+        конструктор контрола.
+        """
         if self.on_changed is not None:
             await self.on_changed()
 
@@ -91,6 +96,14 @@ class ListBlock(ft.Row):
         control.expand = True
 
     # --- API для окна ---
+
+    def setController(self, controller) -> None:
+        """Переключает блок на другое хранилище."""
+        self.controller = controller
+        self.list_view.setController(controller)
+        self.form = None
+        self.info.clear()
+        self.info.visible = False
 
     def showCurrent(self) -> None:
         """Показывает данные текущего фильма после перезагрузки списка."""
@@ -141,12 +154,12 @@ class ListBlock(ft.Row):
 
     async def delete_current(self) -> None:
         await self.list_view.delete_current()
-        await self._notify()
+        await self._notify_changed()
 
     async def move_current(self) -> None:
         """«Смотрим» → «Посмотрели» и обратно."""
         await self.list_view.move_current()
-        await self._notify()
+        await self._notify_changed()
 
     def cancel_form(self, e=None) -> None:
         self.form = None
@@ -162,4 +175,4 @@ class ListBlock(ft.Row):
         self.form = None
         self.info.visible = True
         self._set_right(self.info)
-        await self._notify()
+        await self._notify_changed()

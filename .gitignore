@@ -32,6 +32,8 @@ generated*
 
 # === Локальная песочница/проверки ===
 .scratch_check/
+_check_*.py
+tools/
 
 # === IDE / ОС ===
 .vscode/

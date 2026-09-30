@@ -1,8 +1,8 @@
 # Кинопрокатчик
 
 Десктопное приложение (Flet) для учёта фильмов и сериалов: что смотрим, что
-посмотрели, сколько на это ушло времени. База хранится одним JSON-файлом в
-Google Drive, поэтому данные доступны с любого компьютера.
+посмотрели, сколько на это ушло времени. База — один JSON-файл, который можно
+держать локально или в Google Drive; режим переключается из программы.
 
 ## Возможности
 
@@ -12,7 +12,7 @@ Google Drive, поэтому данные доступны с любого ко�
 4. Помечает, просмотрено ли
 5. Учитывает количество сезонов
 6. Учитывает время серии
-7. Синхронизирует базу с облаком
+7. Хранит базу локально или в Google Drive — на выбор
 8. Три цветовые темы (серая, красная, светлая)
 
 ## Стек
@@ -36,10 +36,14 @@ UI/ButtonMenu.py             панель кнопок
 UI/ExitDialog.py             диалог выхода
 UI/Info.py                   карточка фильма (Markdown)
 UI/Theme.py                  темы и меню выбора темы
+UI/StoragePick.py            меню выбора хранилища (файл или Drive)
 UI/Export.py                 реэкспорт всех частей интерфейса
 data/Kino.py                 модели и логика списка
-data/DataController.py       связка UI ↔ база (сеть — в отдельном потоке)
+data/DataController.py       связка UI ↔ база (ввод-вывод — в отдельном потоке)
 data/config.py               пути и настройки, чтение settings.yaml
+data/storage.py              выбор хранилища и фабрика бэкендов
+data/storage_protocol.py     общий контракт хранилища
+data/local/local.py          база в локальном файле
 data/drive/drive.py          клиент Google Drive
 data/drive/settings.yaml     настройки PyDrive2 (без секретов)
 assets/                      иконки
@@ -55,10 +59,33 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
+## Хранилище базы
+
+База — это один JSON-файл. Где он лежит, выбирается в `data/drive/settings.yaml`
+(ключ `storage`) или переменной окружения `KINOPROKATCHIK_STORAGE`:
+
+| Режим | Что это | Что нужно |
+|---|---|---|
+| `local` | файл в папке данных пользователя (по умолчанию) | ничего, работает без интернета |
+| `drive` | файл на Google Drive, синхронизация между машинами | `client_secrets.json` + `drive_file_id` |
+| `auto` | решить при запуске: Drive, если настроен, иначе локальный файл | — |
+
+Локальная база лежит рядом с токеном:
+
+- Windows: `%LOCALAPPDATA%\Kinoprokatchik\kinos.json`
+- Linux: `~/.local/share/Kinoprokatchik/kinos.json`
+- macOS: `~/Library/Application Support/Kinoprokatchik/kinos.json`
+
+Сменить режим можно и не выходя из программы: кнопка слева в шапке. При
+переключении программа спросит, переносить ли текущий список в новое хранилище —
+файл и облако не синхронизируются между собой автоматически, каждое живёт
+самостоятельно.
+
 ## Настройка доступа к Google Drive
 
-Секретов в репозитории нет и быть не должно. Ключ доступа каждый заводит сам —
-это несколько минут в Google Cloud Console.
+Нужна только для режима `drive` (или `auto` с настроенным облаком). Секретов в
+репозитории нет и быть не должно: ключ доступа каждый заводит сам — это несколько
+минут в Google Cloud Console.
 
 1. Создайте проект в [Google Cloud Console](https://console.cloud.google.com/).
 2. Включите **Google Drive API** (APIs & Services → Library).
@@ -84,6 +111,7 @@ pip install -r requirements.txt
 
 | Переменная | Назначение |
 |---|---|
+| `KINOPROKATCHIK_STORAGE` | режим хранилища: `local`, `drive` или `auto` |
 | `KINOPROKATCHIK_DRIVE_FILE_ID` | переопределяет `drive_file_id` из `settings.yaml` |
 | `KINOPROKATCHIK_DATA_DIR` | папка для `credentials.json` и прочих изменяемых файлов |
 | `KINOPROKATCHIK_SETTINGS` | путь к своему `settings.yaml` вместо `data/drive/settings.yaml` |
@@ -99,6 +127,10 @@ python main.py
 ```powershell
 flet run main.py
 ```
+
+Без Google Drive приложение тоже работает: `storage: local` в `settings.yaml`
+(или переменная `KINOPROKATCHIK_STORAGE=local`) — и база ляжет в файл
+`kinos.json` в папке данных пользователя.
 
 ## Особенности Flet 1.0.3
 

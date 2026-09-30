@@ -14,7 +14,7 @@ class KinoTile(ft.ListTile):
         self.kino = kino
         self.data = kino
         self.title = ft.Text(value=f'{kino.number}) {kino.name}')
-        self.leading = ft.Icon(name=ft.Icons.MOVIE_OUTLINED)
+        self.leading = ft.Icon(icon=ft.Icons.MOVIE_OUTLINED)
         self.selected = False
         self.on_click = click
 
@@ -65,6 +65,13 @@ class KinoList(ft.ListView):
             if tile is not None:
                 tile.selected = True
                 self.current_tile = tile
+
+    def setController(self, controller: DataController) -> None:
+        """Переключает список на другое хранилище: выбор сбрасывается."""
+        self.controller = controller
+        self.current_kino = None
+        self.current_tile = None
+        self.loadControls()
 
     def highlightTile(self, tile: KinoTile) -> None:
         """Оставляет подсвеченной только одну строку."""

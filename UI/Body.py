@@ -90,6 +90,12 @@ class Body(ft.Container):
         else:
             self.refresh()
 
+    def setController(self, controller) -> None:
+        """Переключает обе вкладки на другое хранилище."""
+        self.controller = controller
+        self.list_block.setController(controller)
+        self.list_block_watched.setController(controller)
+
     def refresh(self) -> None:
         """Перерисовать оба блока по текущим данным."""
         self.list_block.reload()

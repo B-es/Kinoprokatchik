@@ -7,8 +7,9 @@ Flet 1.x: приложение запускается через ``ft.run(main)`
 
 import flet as ft
 
-from data.config import check_settings, drive_file_id, load_settings
+from data.config import check_settings
 from data.DataController import DataController
+from data.storage import resolve_mode
 
 
 async def show_config_error(page: ft.Page, message: str) -> None:
@@ -26,7 +27,7 @@ async def show_config_error(page: ft.Page, message: str) -> None:
                     alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
-                        ft.Icon(name=ft.Icons.KEY_OFF_OUTLINED, size=48),
+                        ft.Icon(icon=ft.Icons.KEY_OFF_OUTLINED, size=48),
                         ft.Text(
                             value='Нужна настройка',
                             theme_style=ft.TextThemeStyle.HEADLINE_SMALL,
@@ -50,7 +51,7 @@ async def main(page: ft.Page):
         await show_config_error(page, error)
         return
 
-    controller = DataController(settings=load_settings(), file_id=drive_file_id())
+    controller = DataController(mode=resolve_mode())
 
     from UI.Window import start_window
 
